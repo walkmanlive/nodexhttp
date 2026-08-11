@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
-
-docker build -t vevc/fml .
+#如果上传到huggingface 使用
+#docker build -t vevc/fml .
