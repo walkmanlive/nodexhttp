@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/one-node-hf  # 镜像名称
+  IMAGE_NAME: ${{ github.repository }}/nodexh  # 镜像名称
 
 jobs:
   build-and-push:
