@@ -20,7 +20,7 @@ FROM ubuntu:22.04
 LABEL org.opencontainers.image.source="https://github.com/walkmanlive/nodexhttp"
 
 ENV TZ=Asia/Shanghai \
-    UUID=2584b733-9095-4bec-a7d5-62b473540f7a \
+    UUID=f5b5350e-f47e-4591-ad9d-9feb0d1f556d \
     DOMAIN=hopto-xp.hf.space
 
 COPY entrypoint.sh /entrypoint.sh
