@@ -17,7 +17,7 @@ RUN apt-get update; \
 
 FROM ubuntu:22.04
 
-LABEL org.opencontainers.image.source="https://github.com/vevc/one-node"
+LABEL org.opencontainers.image.source="https://github.com/walkmanlive/nodexhttp"
 
 ENV TZ=Asia/Shanghai \
     UUID=7ca0700b-98f5-4b44-ab72-cace661a4357 \
