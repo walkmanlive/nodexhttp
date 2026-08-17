@@ -3,14 +3,14 @@ name: 构建并推送镜像到 GHCR
 # 触发条件：推送到 dev 分支时自动构建，也支持手动触发
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "main" ]
     paths:
       - 'hugging-face/**'  # 只有 hugging-face 目录文件变动才触发
   workflow_dispatch:      # 允许在 Actions 页面手动点击运行
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/nodexh  # 镜像名称
+  IMAGE_NAME: ${{ github.repository }}/xreixtun  # 镜像名称
 
 jobs:
   build-and-push:
