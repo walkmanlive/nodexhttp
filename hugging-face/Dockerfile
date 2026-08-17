@@ -21,7 +21,7 @@ LABEL org.opencontainers.image.source="https://github.com/vevc/one-node"
 
 ENV TZ=Asia/Shanghai \
     UUID=7ca0700b-98f5-4b44-ab72-cace661a4357 \
-    DOMAIN=paoai-xh.hf.space
+    DOMAIN=hopto-xp.hf.space
 
 COPY entrypoint.sh /entrypoint.sh
 COPY app /app
