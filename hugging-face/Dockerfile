@@ -1,26 +1,19 @@
 FROM ubuntu:22.04 AS builder
-
 WORKDIR /app
-
 RUN apt-get update; \
-    apt-get install -y wget unzip; \
-    wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip; \
-    unzip Xray-linux-64.zip; \
-    rm -f Xray-linux-64.zip; \
-    mv xray xy; \
-    wget -O td https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64; \
-    chmod +x td; \
+    apt-get install -y wget ca-certificates --no-install-recommends; \
+    # 仅保留合法定时任务工具 supercronic，彻底删除 ttyd 网页终端二进制
     wget -O supercronic https://github.com/aptible/supercronic/releases/latest/download/supercronic-linux-amd64; \
-    chmod +x supercronic
+    chmod +x supercronic; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 
 ############################################################
 
 FROM ubuntu:22.04
-
 LABEL org.opencontainers.image.source="https://github.com/walkmanlive/nodexhttp"
-
 ENV TZ=Asia/Shanghai \
-    UUID=f5b5350e-f47e-4591-ad9d-9feb0d1f556d \
+    UUID=7ca0700b-98f5-4b44-ab72-cace661a4357 \
     DOMAIN=hopto-xp.hf.space
 
 COPY entrypoint.sh /entrypoint.sh
@@ -28,17 +21,17 @@ COPY app /app
 
 RUN export DEBIAN_FRONTEND=noninteractive; \
     apt-get update; \
-    apt-get install -y tzdata openssh-server curl ca-certificates wget vim net-tools supervisor unzip iputils-ping telnet git iproute2 --no-install-recommends; \
+    # 移除 openssh-server、telnet 等高危终端/网络服务，仅保留业务必要工具
+    apt-get install -y tzdata curl ca-certificates wget vim net-tools supervisor unzip iputils-ping git iproute2 --no-install-recommends; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*; \
     chmod +x /entrypoint.sh; \
-    chmod -R 777 /app; \
+    chmod -R 755 /app; \
     useradd -u 1000 -g 0 -m -s /bin/bash user; \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime; \
     echo $TZ > /etc/timezone
 
-COPY --from=builder /app/xy /usr/local/bin/xy
-COPY --from=builder /app/td /usr/local/bin/td
+# 仅复制合规的定时任务工具，彻底移除 ttyd 终端程序
 COPY --from=builder /app/supercronic /usr/local/bin/supercronic
 
 EXPOSE 7860
