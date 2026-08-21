@@ -1,4 +1,4 @@
-name: 构建并推送镜像到 GHCR
+name: main构建并推送镜像到 GHCR
 
 # 触发条件：推送到 dev 分支时自动构建，也支持手动触发
 on:
