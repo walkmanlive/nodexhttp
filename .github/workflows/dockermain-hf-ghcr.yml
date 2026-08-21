@@ -1,44 +1,40 @@
-name: 构建并推送镜像到 GHCR
+FROM ubuntu:22.04 AS builder
+WORKDIR /app
+RUN apt-get update; \
+    apt-get install -y wget ca-certificates --no-install-recommends; \
+    # 仅保留合法定时任务工具 supercronic，彻底删除 ttyd 网页终端二进制
+    wget -O supercronic https://github.com/aptible/supercronic/releases/latest/download/supercronic-linux-amd64; \
+    chmod +x supercronic; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 
-# 触发条件：推送到 main 分支时自动构建，也支持手动触发
-on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'hugging-face/**'  # 只有 hugging-face 目录文件变动才触发
-  workflow_dispatch:      # 允许在 Actions 页面手动点击运行
+############################################################
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/xreixtun  # 镜像名称
+FROM ubuntu:22.04
+LABEL org.opencontainers.image.source="https://github.com/walkmanlive/nodexhttp"
+ENV TZ=Asia/Shanghai \
+    UUID=7ca0700b-98f5-4b44-ab72-cace661a4357 \
+    DOMAIN=hopto-xp.hf.space
 
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write     # 必须开启，否则无法推送到 GHCR
+COPY entrypoint.sh /entrypoint.sh
+COPY app /app
 
-    steps:
-      - name: 拉取仓库代码
-        uses: actions/checkout@v5
+RUN export DEBIAN_FRONTEND=noninteractive; \
+    apt-get update; \
+    # 移除 openssh-server、telnet 等高危终端/网络服务，仅保留业务必要工具
+    apt-get install -y tzdata curl ca-certificates wget vim net-tools supervisor unzip iputils-ping git iproute2 --no-install-recommends; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*; \
+    chmod +x /entrypoint.sh; \
+    chmod -R 755 /app; \
+    useradd -u 1000 -g 0 -m -s /bin/bash user; \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime; \
+    echo $TZ > /etc/timezone
 
-      - name: 设置 Docker Buildx 加速构建
-        uses: docker/setup-buildx-action@v4
+# 仅复制合规的定时任务工具，彻底移除 ttyd 终端程序
+COPY --from=builder /app/supercronic /usr/local/bin/supercronic
 
-      - name: 登录 GHCR 容器仓库
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}  # GitHub 自动生成，无需手动添加
+EXPOSE 7860
 
-      - name: 构建并推送镜像
-        uses: docker/build-push-action@v7
-        with:
-          context: ./hugging-face       # 关键：构建上下文指向子目录
-          file: ./hugging-face/Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha          # 开启构建缓存，大幅提升二次构建速度
-          cache-to: type=gha,mode=max
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["supervisord", "-c", "/app/supervisor/supervisord.conf"]
