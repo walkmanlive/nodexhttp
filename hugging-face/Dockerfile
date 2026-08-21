@@ -6,7 +6,8 @@ RUN apt-get update; \
     apt-get install -y wget unzip; \
     wget -O supercronic https://github.com/aptible/supercronic/releases/latest/download/supercronic-linux-amd64; \
     chmod +x supercronic
-
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 ############################################################
 
 FROM ubuntu:22.04
